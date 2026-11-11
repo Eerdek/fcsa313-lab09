@@ -1,5 +1,6 @@
 package mn.edu.must.sqat;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -124,5 +125,24 @@ class ScholarshipCalculatorTest {
     @Test
     void scholarship_gpa25Credits20_returns0() {
         assertEquals(0, calc.scholarship(2.5, 20, false));
+    }
+
+    // ---------- Хэсэг C: gpa() доторх давталтын зааг (0 / 1 / 2+) ----------
+
+    @Test
+    void gpa_loopZeroIterations_emptyOrNullScores_throws() {
+        assertAll(
+                () -> assertThrows(IllegalArgumentException.class, () -> calc.gpa(new double[0]), "empty"),
+                () -> assertThrows(IllegalArgumentException.class, () -> calc.gpa(null), "null"));
+    }
+
+    @Test
+    void gpa_loopOneIteration_singleScore95_returns4() {
+        assertEquals(4.0, calc.gpa(new double[] {95}), EPS);
+    }
+
+    @Test
+    void gpa_loopManyIterations_scores95_85_75_65_returns2point5() {
+        assertEquals(2.5, calc.gpa(new double[] {95, 85, 75, 65}), EPS);
     }
 }

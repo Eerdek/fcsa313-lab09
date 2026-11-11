@@ -95,3 +95,20 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 `results/jacoco-B.csv`: `BRANCH_MISSED = 0`, `BRANCH_COVERED = 41` (**41/41 = 100%**),
 `LINE_MISSED = 0`, `LINE_COVERED = 25` (**25/25 = 100%**), INSTRUCTION 152/152.
+
+## 4. Хэсэг C — Давталтын заагийн тестүүд (gpa)
+
+| Давталт | Тест | Шалгалт |
+|---|---|---|
+| 0 удаа | `gpa_loopZeroIterations_emptyOrNullScores_throws` | хоосон массив **ба** `null` → `assertThrows(IllegalArgumentException)` (`assertAll`-аар хоёуланг) |
+| 1 удаа | `gpa_loopOneIteration_singleScore95_returns4` | `gpa([95]) == 4.0` |
+| 2+ удаа | `gpa_loopManyIterations_scores95_85_75_65_returns2point5` | `gpa([95, 85, 75, 65]) == 2.5` |
+
+`results/mvn-verify-C.txt`: `Tests run: 24, Failures: 0` (21 + 3), `results/jacoco-C.csv` нь
+`jacoco-B.csv`-тэй яг ижил (Branch 41/41, Line 25/25) — хамралт **нэг ч өссөнгүй**.
+
+Хамралт өсөөгүй ч эдгээр тест хэрэгтэй: JaCoCo зөвхөн салаа *дайрагдсан эсэхийг* тоолдог болохоос
+давталт 0, 1, олон удаа эргэх үед `total / scores.length` зөв гарах эсэхийг (жишээ нь хуваагчийг
+`scores.length - 1` гэж буруу бичих, эсвэл эхний элементийг алгасах off-by-one) шалгадаггүй —
+ийм алдаа салааны бүтцийг өөрчлөхгүй тул 100% хамралттай байхад ч амьд үлдэнэ. 0/1/2+ дүрэм нь
+давталтын хамгийн эмзэг зааг (хоосон, ганц, олон) бүрд *гаралтын утгыг* шалгаж ийм алдааг барина.
