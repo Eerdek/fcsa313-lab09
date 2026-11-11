@@ -64,3 +64,34 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 "худал" тал нь шалгагдсан. **Улаан** (огт хүрээгүй) мөрүүд нь яг алдааны замууд: гурван
 `throw new IllegalArgumentException`, хамгийн доод дүнгүүд (`C`, `D`, `F`) ба тэтгэлгийн 50%,
 0% буцаах мөрүүд — happy path тестүүд хүчингүй оролт, муу дүн, бага голчийн замыг огт дайраагүй.
+
+## 3. Хэсэг B — CFG ба branch 100%
+
+![CFG — scholarship()](cfg.png)
+
+`cfg.png` — `scholarship()`-ийн CFG: нөхцөл бүрийг тусдаа шийдвэрийн зангилаа болгосон
+(`gpa < 0 || gpa > 4 || credits < 0` → 2, 3, 4-р зангилаа; `&&` бүр → 8–9, 11–12), ирмэг бүрийн
+хажууд түүнийг дайрдаг тестийн **бодит метод нэр**. (Зургийг гараар байршуулж SVG-ээр зурж PNG
+болгосон; ирмэг дээрх 11 нэр бүгд `ScholarshipCalculatorTest.java`-ийн `scholarship_…` методуудтай
+яг таарч байгааг шалгасан.)
+
+Хэсэг A-ийн дараа хамрагдаагүй ирмэгүүд (2T, 3T, 4T, 6T, 9F, 12F, 14T, 14F) ба letterGrade/gpa-ийн
+улаан мөрүүдэд 16 тест нэмэв:
+
+| Функц | Нэмсэн тест | Хамрах салаа |
+|---|---|---|
+| letterGrade | `letterGrade_score75_returnsC`, `letterGrade_score65_returnsD`, `letterGrade_score30_returnsF` | C, D, F (`score > 60` худал) |
+| letterGrade | `letterGrade_negativeScore_throws`, `letterGrade_scoreAbove100_throws` | `score < 0`, `score > 100` тус бүрийн үнэн (`assertThrows`) |
+| gpa | `gpa_nullScores_throws`, `gpa_emptyScores_throws` | `scores == null`, `scores.length == 0` тус бүрийн үнэн |
+| gpa | `gpa_scoresCDandF_returns1` | switch-ийн C, D ба **default** (F) салаа |
+| scholarship | `scholarship_negativeGpa_throws`, `scholarship_gpaAbove4_throws`, `scholarship_negativeCredits_throws` | эхний `if`-ийн 3 нөхцөл тус бүрийн үнэн — 3 тусдаа `assertThrows` |
+| scholarship | `scholarship_hasViolation_returns0` | 6T |
+| scholarship | `scholarship_gpa39ButCredits14_returns70` | 9F — голч ≥ 3.8 ч кредит < 15 |
+| scholarship | `scholarship_gpa35ButCredits11_returns50` | 12F — голч ≥ 3.4 ч кредит < 12 |
+| scholarship | `scholarship_gpa32Credits10_returns50`, `scholarship_gpa25Credits20_returns0` | 11F, 14T, 14F |
+
+**Шаардагдсан тест: 21** (A-ийн 5 + B-ийн 16) — `results/mvn-verify-B.txt`:
+`Tests run: 21, Failures: 0, Errors: 0, Skipped: 0`, BUILD SUCCESS.
+
+`results/jacoco-B.csv`: `BRANCH_MISSED = 0`, `BRANCH_COVERED = 41` (**41/41 = 100%**),
+`LINE_MISSED = 0`, `LINE_COVERED = 25` (**25/25 = 100%**), INSTRUCTION 152/152.

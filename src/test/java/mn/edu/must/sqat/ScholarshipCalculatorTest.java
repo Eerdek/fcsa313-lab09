@@ -1,6 +1,7 @@
 package mn.edu.must.sqat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -35,5 +36,93 @@ class ScholarshipCalculatorTest {
     @Test
     void scholarship_gpa35Credits12NoViolation_returns70() {
         assertEquals(70, calc.scholarship(3.5, 12, false));
+    }
+
+    // ---------- Хэсэг B: branch 100% ----------
+
+    // letterGrade
+    @Test
+    void letterGrade_score75_returnsC() {
+        assertEquals("C", calc.letterGrade(75));
+    }
+
+    @Test
+    void letterGrade_score65_returnsD() {
+        assertEquals("D", calc.letterGrade(65));
+    }
+
+    @Test
+    void letterGrade_score30_returnsF() {
+        assertEquals("F", calc.letterGrade(30));
+    }
+
+    @Test
+    void letterGrade_negativeScore_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.letterGrade(-1));
+    }
+
+    @Test
+    void letterGrade_scoreAbove100_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.letterGrade(101));
+    }
+
+    // gpa
+    @Test
+    void gpa_nullScores_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.gpa(null));
+    }
+
+    @Test
+    void gpa_emptyScores_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.gpa(new double[0]));
+    }
+
+    @Test
+    void gpa_scoresCDandF_returns1() {
+        // C=2, D=1, F=0 (switch-ийн default салаа) -> 3/3 = 1.0
+        assertEquals(1.0, calc.gpa(new double[] {75, 65, 30}), EPS);
+    }
+
+    // scholarship
+    @Test
+    void scholarship_negativeGpa_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.scholarship(-0.1, 15, false));
+    }
+
+    @Test
+    void scholarship_gpaAbove4_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.scholarship(4.1, 15, false));
+    }
+
+    @Test
+    void scholarship_negativeCredits_throws() {
+        assertThrows(IllegalArgumentException.class, () -> calc.scholarship(3.5, -1, false));
+    }
+
+    @Test
+    void scholarship_hasViolation_returns0() {
+        assertEquals(0, calc.scholarship(3.9, 16, true));
+    }
+
+    @Test
+    void scholarship_gpa39ButCredits14_returns70() {
+        // голч >= 3.8 хангасан ч кредит < 15 -> 100 биш, дараагийн нөхцөл 70
+        assertEquals(70, calc.scholarship(3.9, 14, false));
+    }
+
+    @Test
+    void scholarship_gpa35ButCredits11_returns50() {
+        // голч >= 3.4 хангасан ч кредит < 12 -> 70 биш, 50
+        assertEquals(50, calc.scholarship(3.5, 11, false));
+    }
+
+    @Test
+    void scholarship_gpa32Credits10_returns50() {
+        assertEquals(50, calc.scholarship(3.2, 10, false));
+    }
+
+    @Test
+    void scholarship_gpa25Credits20_returns0() {
+        assertEquals(0, calc.scholarship(2.5, 20, false));
     }
 }
