@@ -112,3 +112,34 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 `scores.length - 1` гэж буруу бичих, эсвэл эхний элементийг алгасах off-by-one) шалгадаггүй —
 ийм алдаа салааны бүтцийг өөрчлөхгүй тул 100% хамралттай байхад ч амьд үлдэнэ. 0/1/2+ дүрэм нь
 давталтын хамгийн эмзэг зааг (хоосон, ганц, олон) бүрд *гаралтын утгыг* шалгаж ийм алдааг барина.
+
+## 5. Хэсэг D — Хамралт 100%, гэхдээ алдаа амьд
+
+Branch 41/41, Line 25/25 байхад letterGrade-д спецификацийн зааг утгуудыг нэг
+`@ParameterizedTest`-ээр (`letterGrade_boundaryScores_matchSpec`) нэмэв: 60→D, 59.99→F,
+69.99→D, 0→F, 100→A, 89.99→B, 90→A. `mvn test 2>&1 | tee results/mvn-test-D-fail.txt`:
+
+```
+[ERROR] mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_boundaryScores_matchSpec(double, String)[1]
+org.opentest4j.AssertionFailedError: expected: <D> but was: <F>
+[ERROR]   ScholarshipCalculatorTest.letterGrade_boundaryScores_matchSpec:164 expected: <D> but was: <F>
+[ERROR] Tests run: 31, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+```
+
+Унасан нь зөвхөн `[1]` мөр — `letterGrade(60)`; бусад 6 зааг утга зөв. Харьцуулах операторуудыг
+спецификацийн мөр бүртэй тулгахад `60-69.99 -> "D"` гэсэн ч код `if (score > 60) return "D";` —
+60 оноог "F" болгож байсан. **Засвар тусдаа commit** (`1164729`, *"Fix letterGrade: > 60 → >= 60,
+spec says 60 is D"*): `score > 60` → `score >= 60`. Дараа нь `results/mvn-verify-final.txt`:
+`Tests run: 31, Failures: 0, Errors: 0, Skipped: 0`, BUILD SUCCESS; `results/jacoco-final.csv`:
+BRANCH_MISSED = 0 (41/41), LINE_MISSED = 0 (25/25).
+
+**Гол дүгнэлт.** `score > 60` ба `score >= 60` хоёулаа яг ижил хоёр салаа (үнэн → "D", худал → "F")
+үүсгэдэг тул Хэсэг B-ийн `letterGrade_score65_returnsD` (үнэн) ба `letterGrade_score30_returnsF`
+(худал) тестүүд хоёр салааг хоёуланг нь дайрч JaCoCo 100% гэж харуулсан — алдаатай кодоор ч,
+зассан кодоор ч хамралтын тоо яг ижил (jacoco-B.csv = jacoco-final.csv). Хоёр хувилбарын ялгаа
+зөвхөн нэг цэг дээр — яг 60 оноо дээр гардаг тул тэр утгыг өгсөн тест л алдааг илрүүлнэ. Өөрөөр
+хэлбэл хамралт нь "аль мөр, аль салаа ажилласан бэ"-г хэмждэг болохоос "гарсан үр дүн
+спецификацитай таарч байна уу"-г хэмждэггүй; oracle-ийн чанар, зааг утгын сонголтыг огт харуулахгүй.
+Хамралт 100% нь "туршаагүй код алга" гэсэн доод баталгаа болохоос "алдаа алга" гэсэн нотолгоо биш —
+зааг утгын шинжилгээтэй хослуулж байж утгатай.
